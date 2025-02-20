@@ -1,0 +1,824 @@
+---
+title: "DATA2002 Assignment"
+date: "`10 September 2023`"
+author: "520360707"
+format: 
+  html: 
+    embed-resources: true # Creates a single HTML file as output
+    code-fold: true # Code folding; allows you to show/hide code chunks
+    code-tools: true # Includes a menu to download the code file 
+    # code-tools are particularly important if you use inline R to 
+    # improve the reproducibility of your report
+table-of-contents: true # (Optional) Creates a table of contents
+number-sections: false # (Optional) Puts numbers next to heading/subheadings
+---
+
+## 1. Introduction
+
+The data collected for this report was gathered by Dr. Garth Tarr and distributed among DATA2X02 students to be completed in a Google form survey. Among the question provided, I have chosen to focus on a general topic ***"Analyzing the Factors that Influence Academic Performance in DATA2X02 Students at the University of Sydney"***
+
+\
+This report delves into an examination of the factors which might impact the academic performance of DATA2X02 students at University of Sydney enrolled in Semester 2 of 2023. The study encompasses a diverse range of variables, including gender, health habits, sleep patterns, work commitments, course load, age, and more. These measurements are done by conducting appropriate statistical tests for each one.
+
+## 2. **Initial Data Analysis (IDA) / Data Wrangling**
+
+The calculations in this report were all done using R-studio. Starting from the data cleaning, test statistics, visualizations, outlier detection, and summary of findings.
+
+-   The row of the data set represents the response or data from a particular student
+
+-   The column of the data set represents all data of a single variable
+
+## 3. **General Discussion of the data as a whole**
+
+#### 3.1 Is this a random sample of DATA 2X02 students?
+
+Yes, it can be considered as a random sample of DATA2X02 students.Random sampling is when each item in the population has an equal chance of being selected in the sample, it is also called probability sampling. In this case, Every student in the particular class had an equal opportunity to be included in the sample. This is because all students were given the same chance by providing them with a link to the survey. There is also unbiased selection as the process of giving all students in the class a link to the survey is unbiased. It does not favor or discriminate against any particular student based on any characteristic.
+
+However, this data does not represent the whole population since there are students who don't fill in the survey. Furthermore, it's important to note that this survey might only capture responses from a single year, potentially overlooking any changes or fluctuations in data trends over time. Despite this limitation, in essence, it still qualifies as a random sample of DATA2X02 students.
+
+#### 3.2 What are the potential biases? Which variables are most likely to be subjected to this bias?
+
+Some potential bias that might be associated with this method of data collection would include self-selection bias, so only students such as those who are highly motivated and who are interested in doing the survey will respond. There will also be a non-response bias where some might choose not to answer a certain part of the survey. Response bias might also occur within those who answer, some might have extreme bias towards a certain topic influencing and respondents may provide answers driven by social desirability. Lastly, a sampling bias or error might also partake in the research, in this case, student's ed announcement checking habits. \
+
+Variables that are more subjected to each bias:
+
+-   Non-response
+
+    -   "What is your postcode?" (too personal)
+
+    -   "How many Weet-Bix would you typically eat in one sitting?" (not everyone has done this)
+
+    -   "How often would you say you feel anxious on a daily basis?" (sensitive topic)
+
+    -   What is your WAM?(too personal)
+
+-   Social desirability bias
+
+    -   What is your favorite social media platform?
+
+    -   Do you submit assignments on time?
+
+    -   What kind of role (active or passive) do you think you are when working as part of a team? (0-10)
+
+    -   What brand is your laptop?
+
+-   Ambiguity bias
+
+    -   How many hours a week do you spend studying?
+
+    -   On average, how many hours each week do you spend exercising?
+
+    -   How many hours do you spend on social media per day?
+
+#### 3.3 Which questions needed improvement to generate useful data (e.g. in terms of the way the question was phrased or response validation)?
+
+There are some questions that can be improved to generate more useful and helpful data for the research, such as:
+
+-   Do you tend to lean towards saying "yes" or towards saying "no" to things throughout life? (YES / NO)
+
+    -   It should provide more options like sometimes, since it is a bit ambiguous and might result in extremity bias.
+
+-   Are you completing a major or minor in a subject area from the Faculty of Arts and Social Sciences? (YES / NO)
+
+    -   It should provide more options for those who are not in those majors or minors.
+
+-   Have you read a novel this year? (YES / NO)
+
+    -   It should give a numerical answer instead of yes or no, to know frequency so the data can be more useful.
+
+-   What is your postcode?
+
+    -   Instead of postcode, it would be better to ask for a region around Sydney so the data processing in terms of location won't be as hard.
+
+-   What is your favorite social media platform?
+
+    -   Should not be an open ended question, instead, should give respondents potential answer choices so there are no variable inconsistencies in data.
+
+-   How tall are you? 
+
+    -   Specify metrics input (feet or cm), this might cause data inconsistencies.
+
+There are some more questions that can be changed to improve the data quality so that the data taken can be of a better quality, hence making it easier to process the data and also enhancing accuracy of the tests.
+
+## 4. Data Importing and Cleaning
+
+We first load the data set and load some necessary libraries for the data manipulation and to read the CSV file into "x" .
+
+```{r}
+library(tidyverse)
+library(dplyr)
+x = readr::read_csv("DATA2x02 survey (2023) (Responses) - Form responses 1.csv")
+```
+
+We then rename the column names to make the data cleaning and processing easier and much simpler.
+
+```{r}
+old_names = colnames(x)
+
+new_names = c("timestamp","n_units","task_approach","age",
+              "life","fass_unit","fass_major","novel",
+              "library","private_health","sugar_days","rent",
+              "post_code","haircut_days","laptop_brand",
+              "urinal_position","stall_position","n_weetbix","food_budget",
+              "pineapple","living_arrangements","height","uni_travel_method",
+              "feel_anxious","study_hrs","work","social_media",
+              "gender","sleep_time","diet","random_number",
+              "steak_preference","dominant_hand","normal_advanced","exercise_hrs",
+              "employment_hrs","on_time","used_r_before","team_role",
+              "social_media_hrs","uni_year","sport","wam","shoe_size")
+# overwrite the old names with the new names:
+colnames(x) = new_names
+# combine old and new into a data frame:
+name_combo = bind_cols(New = new_names, Old = old_names)
+name_combo |> gt::gt()
+```
+
+Since the report focus on "Analyzing the Factors that Influence Academic Performance in DATA2X02 Students at the University of Sydney" some relevant variables that might affect academic performance is chosen to be tested. The variables that will be used include work, on_time, task_approach, library, study_hrs, social_media_hrs, sleep_time, feel_anxious, wam, and gender. Some of these variables need cleaning in order to be able to be used in the data processing and statistical testing.
+
+#### Cleaning nulls and outliers
+
+```{r}
+#removing outliers and nulls
+data <- x %>%
+  filter(study_hrs != "2000") %>%
+  filter(gender != "non-binary") %>%
+  filter(wam != "0.00") %>%
+  filter(sleep_time != "") %>%
+  filter(study_hrs != "") %>%
+  filter(complete.cases(.))
+```
+
+```{r}
+#looking at first few rows of data
+head(data)
+```
+
+```{r}
+#looking at data structure
+str(data)
+```
+
+```{r}
+#checking size of data
+dim(data)
+```
+
+#### Cleaning Gender Data
+
+In cleaning the gender data, we first sort distinct categories in gender column to see what different responses are in the data. We then clean the data by deleting "non-binary" row and also cleaning the null response, this new cleaned gender data is given new name gender_clean.
+
+```{r}
+unique(sort(data$gender))
+
+```
+
+```{r}
+library(tidyverse)
+x = x |> mutate(
+  gender_clean = gendercoder::recode_gender(gender)
+)|>
+  filter(gender_clean != "non-binary")
+
+x |> janitor::tabyl(
+  gender, gender_clean
+) |> gt::gt() |> 
+  gt::tab_spanner(label = "Recoded outcomes", columns = 2:3) |> 
+  gt::cols_label(gender = "Original outcomes")
+```
+
+```{r}
+head(x$gender_clean)
+```
+
+#### Cleaning Library data
+
+For this data, we want to use only SciTech and Fisher library for the data processing. This can be done by looking through the unique response and then removing rows with null values and filtering rows that are either Fisher or SciTech.
+
+```{r}
+unique(x$library)
+```
+
+```{r}
+#Remove null
+x <- x[!is.na(x$library),]
+
+#Filter 
+x <- x[x$library %in% c("Fisher", "SciTech"),]
+
+head(x$library)
+```
+
+#### Cleaning feel_anxious data
+
+For this data, we want to bin it into 2 groups:
+
+-   lower level of anxiety (1-5)
+
+-   higher level of anxiety (5-10)
+
+First defining the breaks as desired, giving names for the labels, and we then make a new column named anxiety_level.
+
+```{r}
+#set breaks
+breaks <- c(1, 5, 10)
+labels <- c("lower anxiety", "higher anxiety")
+#new column
+x$anxiety_level <- cut(x$feel_anxious, breaks = breaks, labels = labels, include.lowest = TRUE)
+
+head(x$anxiety_level)
+```
+
+#### Cleaning sleep_time data
+
+In this data, we remove null values, there are also multiple consistency issues since some wrote "hours" and some wrote "minutes", therefore we adjust it and make it as numeric. Also since one of the respond gives 200 which is an outlier and it is not possible to sleep for 200 hours, so we deleted those with three or more digits. The cleaned data is then put in a new column called cleaned_sleep_time.
+
+```{r}
+library(dplyr)
+
+x <- x %>%
+  filter(!is.na(sleep_time)) %>% 
+  mutate(cleaned_sleep_time = gsub(" hours| minutes", "", sleep_time)) %>%
+  mutate(cleaned_sleep_time = as.numeric(cleaned_sleep_time)) %>%
+  filter(cleaned_sleep_time < 100) 
+
+head(x$cleaned_sleep_time)
+```
+
+#### Cleaning study_time data
+
+Similar to the process before, we delete the null values in the data, then we make it as numeric, and then deleting values \> 168 hrs. (Since there are only 168 hours in a week). The cleaned data is then put to a new column with name study_hrs.
+
+```{r}
+x <- x %>%
+  filter(!is.na(study_hrs)) %>% # Remove rows with null values
+  mutate(study_hrs = as.numeric(study_hrs)) %>%
+  filter(study_hrs <= 168) # Remove entries greater than 168
+
+head(x$study_hrs)
+```
+
+#### Create new dataframe for relevant and cleaned variables
+
+After all the cleaning, we want to merge all the relevant variables that will be used in the statistical testing into a new dataframe called cleaned_data, the variables used are work, on_time, task_approach, library, study_hrs, social_media_hrs, sleep_time, feel_anxious, wam, and gender. This is done to make it easier for us to process the data.
+
+```{r}
+#new dataframe
+cleaned_data <- x %>%
+  select(work, on_time, task_approach, library, study_hrs, social_media_hrs, anxiety_level, wam, gender_clean, cleaned_sleep_time)
+
+cleaned_data
+```
+
+```{r}
+library(gt)
+cleaned_data %>%
+  head() %>%
+  gt() %>%
+  tab_spanner(
+    label = "Selected Variables",
+    columns = vars(work, on_time, task_approach, library, study_hrs, social_media_hrs, anxiety_level, wam, gender_clean, cleaned_sleep_time)
+  )
+
+```
+
+## 5. Research Questions
+
+#### 5.1 Is there a correlation between student in DATA2X02 employment and approach on doing task?
+
+This questions explores on whether being employed as a student might or might not affect on one's study. According to a research held by Daniel Douglas and Paul Attewell called "**The Relationship Between Work During College and Post College Earnings"**, undergraduates employed during term time are less likely to graduate. This is because it is speculated that they have less time to study and time management could be hard as it is limited.
+
+In this test, we want to see if there is actually any correlation between student's employment and their behaviors when approaching a given assignment, as they way they tackle assignment is related to their academic.
+
+In this test we are going to use Chi Squared Test of independence, this is an appropriate test for this question since it can examine two categorical variables and if you want to see whether there is a correlation between two variables or not. In this case, we are going to focus on those who work as a part time, casual, and those who don't work.
+
+The null hypothesis for this question is that there is no correlation between employment and assignment tackling.
+
+We first make a contingency table :
+
+```{r}
+contingency_table <- table(cleaned_data$work, cleaned_data$task_approach)
+
+contingency_table <- contingency_table[!(rownames(contingency_table) %in% c("Contractor", "Full time","Self employed")), ]
+
+contingency_df <- as.data.frame.matrix(contingency_table)
+
+rownames(contingency_df) <- c("Casual", "I don't currently work", "Part time")
+
+contingency_df$Work_Status <- rownames(contingency_df)
+
+contingency_df <- contingency_df[, c(ncol(contingency_df), 1:ncol(contingency_df)-1)]
+
+contingency_gt <- gt(contingency_df)
+
+contingency_gt <- contingency_gt %>%
+  tab_header(
+    title = md("Contingency Table"),
+    subtitle = md("Work vs. Task Approach")
+  )
+
+contingency_gt
+
+
+```
+
+We then plot a stacked bar graph to visualize the data:
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+work_data <- data.frame(
+  Work_Status = c("Casual", "I don't currently work", "Part time"),
+  `cram at the last second` = c(13, 36, 18),
+  `do them immediately` = c(10, 4, 3),
+  `draw up a schedule and work through it in planned stages` = c(26, 26, 10)
+)
+
+work_data_long <- pivot_longer(work_data, -Work_Status, names_to = "Task_Approach", values_to = "Frequency")
+
+ggplot(work_data_long, aes(x = Work_Status, y = Frequency, fill = Task_Approach)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Work Status vs. Task Approach",
+       x = "Work Status",
+       y = "Frequency")
+
+```
+
+To understand the data better, we can make proportion bar graph:
+
+```{r}
+
+work_data <- data.frame(
+  Work_Status = c("Casual", "I don't currently work", "Part time"),
+  `cram at the last second` = c(13, 36, 18),
+  `do them immediately` = c(10, 4, 3),
+  `draw up a schedule and work through it in planned stages` = c(26, 26, 10)
+)
+
+work_data_long <- pivot_longer(work_data, -Work_Status, names_to = "Task_Approach", values_to = "Frequency")
+
+work_data_long <- work_data_long %>%
+  group_by(Work_Status) %>%
+  mutate(Proportion = Frequency / sum(Frequency))
+
+ggplot(work_data_long, aes(x = Work_Status, y = Proportion, fill = Task_Approach)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Work Status vs. Task Approach (Proportions)",
+       x = "Work Status",
+       y = "Proportion") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+
+```
+
+Based on the table, we can see that there are some kind of possible correlation especially can be seen from the proportion table. However, plots are not enough to determine the correlation.
+
+We can make contingency table perform the chi squared test:
+
+```{r}
+contingency_table <- matrix(c(13, 10, 26, 36, 4, 26, 18, 3, 10), nrow = 3, byrow = TRUE)
+rownames(contingency_table) <- c("Casual", "I don't currently work", "Part time")
+colnames(contingency_table) <- c("cram at the last second", "do them immediately", "draw up a schedule and work through it in planned stages")
+
+#table
+contingency_table
+
+#test
+chisq.test(contingency_table, correct = FALSE)
+
+```
+
+If R and S are independent, by definition of independence:
+
+![](images/Screen%20Shot%202023-09-10%20at%2011.37.22.png){width="266"}
+
+-   Hypothesis:
+
+    -   H0 = Student's employment is independent of task handling.
+
+    -   H1 = Student's employment is not independent of task handling.
+
+-   Assumptions:
+
+    -   independent observations (satisfied, they were randomly sampled)
+
+![](images/Screen%20Shot%202023-09-10%20at%2017.45.33.png){fig-align="center" width="137"}
+
+-   Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2017.46.45.png){fig-align="center" width="158"}
+
+, under H0, T \~ degree of freedom 4
+
+-   Observed Test Statistic:
+
+    ![](images/Screen%20Shot%202023-09-10%20at%2017.50.22.png){width="205"}
+
+t0 = 13.39
+
+-   P-value:
+
+    ![](images/Screen%20Shot%202023-09-10%20at%2017.52.44.png){width="81"}
+
+P-value = 0.00954
+
+-   Decision:
+
+    -   Since the p-value is less than 0.05, the data provides evidence against H0. Therefore we reject null hypothesis H0 since the evidence suggests that there is an association between student's employment and task handling.
+
+The test has proven that students who are employed would typically have less time to do their given assignment due to limited time from working compare to students who are not currently working, they would usually do their assignment last minute. This might affect their long term academic performance. However, this is not enough prove that working might affect student's academic delay, there are other tests that we can conduct or other questions to ask.
+
+#### 5.2 Does library preference influence DATA2X02 students' approach to assignments?
+
+We can also ask the question "Are there differences in the approach to assignments between students who utilize Fisher Library and those who utilize Scitech Library" and how it may or may not affect their studies?" I found this as an interesting question, since I believe that each students has their own preference of study venue and I believe that the factors of the library, such as noise level or crowd level, might affect one's studying behavior which might also eventually lead to their academic.
+
+For this question we are going to use Chi squared test of Homogeneity. A Chi-square test of homogeneity is suitable for testing whether the distribution of categorical variables is the same across different groups or populations. It is appropriate for this research question since they are both categorical variables, and it is used to compare the distributions of categorical variables in different groups or populations.
+
+The null hypothesis for this question is that the distribution is the same across all population.
+
+We first load some libraries and then we make a contingency table (similar to question 5.1):
+
+```{r}
+library(stats)
+library(gt) 
+
+contingency_table <- table(cleaned_data$library, cleaned_data$task_approach)
+contingency_table
+contingency_df <- as.data.frame.matrix(contingency_table)
+rownames(contingency_df) <- c("Fisher Library", "SciTech Library")
+contingency_df$Library <- rownames(contingency_df)
+contingency_df <- contingency_df[, c(ncol(contingency_df), 1:ncol(contingency_df)-1)]
+contingency_gt <- gt(contingency_df)
+contingency_gt <- contingency_gt %>%
+  tab_spanner(
+    label = "Task Approach",
+    columns = vars(`cram at the last second`, `do them immediately`, `draw up a schedule and work through it in planned stages`)
+  )
+
+contingency_gt
+
+```
+
+We then visualize the data with stacked bar graphs and also mcomputeke the visualization for the proportion to make it easier to understand the data:
+
+```{r}
+library(ggplot2)
+
+task_data <- data.frame(
+  Library = c("Fisher Library", "SciTech Library"),
+  `cram at the last second` = c(46, 24),
+  `do them immediately` = c(14, 5),
+  `draw up a schedule and work through it in planned stages` = c(43, 25)
+)
+
+task_data_long <- tidyr::pivot_longer(task_data, -Library, names_to = "Task_Approach", values_to = "Frequency")
+
+
+#stacke bar plot
+ggplot(task_data_long, aes(x = Library, y = Frequency, fill = Task_Approach)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Task Approach by Library (Stacked)",
+       x = "Library",
+       y = "Frequency",
+       fill = "Task Approach")
+
+
+
+#proportion
+task_data_long <- task_data_long %>%
+  group_by(Library) %>%
+  mutate(Proportion = Frequency / sum(Frequency))
+
+ggplot(task_data_long, aes(x = Library, y = Proportion, fill = Task_Approach)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(title = "Task Approach Proportions by Library",
+       x = "Library",
+       y = "Proportion",
+       fill = "Task Approach")
+
+
+```
+
+According to the proportion bar graph, we can see that, the frequency of the task approaches are almost similar for Fisher and SciTech library. However, we can't conclude anything just from looking at the visualization.
+
+We can calculate the chi squares test:
+
+```{r}
+contingency_table <- table(cleaned_data$library, cleaned_data$task_approach)
+
+chisq.test(contingency_table, correct = FALSE)
+```
+
+-   Hypothesis:
+
+    -   H0 = The proportions of "cram at last second", "do it immediately", and "draw up a schedule" are homogeneous across Fisher and Scitech libraries.
+
+    -   10 = The proportions of "cram at last second", "do it immediately", and "draw up a schedule" are not the same homogeneous across Fisher and Scitech libraries.
+
+-   Assumptions:
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.16.29.png){fig-align="center" width="154"}
+
+, the assumption is proven to be true
+
+-   Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.17.12.png){fig-align="center" width="158"}
+
+, under H0, T \~ degree of freedom 2
+
+-   Observed Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.18.01.png){fig-align="center" width="160"}
+
+, t0 = 0.37049
+
+-   P-value:
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.18.51.png){fig-align="center" width="98"}
+
+, p value = 0.8309
+
+-   Decision:
+
+    -   The p value is way higher that 0.05, therefore at the 5% level of significance, we accept null hypothesis and conclude that how student handles task are homogeneous across those who study at Fisher and those who study at Scitech Library.
+
+This means that there is no relationship between library selection and task handling for students enrolled in DATA2X02. Meaning that there is no sufficient evidence to conclude that there is a significant difference in how students handle tasks based on the library they study at. The approach to tasks appears to be similar across both Fisher and Scitech Libraries. Hence library choice in particular does not afffect student's academic. However this survey question can be improved such as having more thatn two libraries and a bigger sample size.
+
+#### 5.3 Is there a relationship between decreased sleep duration and elevated anxiety levels in students, as opposed to those who obtain more sleep?
+
+Another question that we can ask is whether sleep duration and affect anxiety levels for students. Based on a research held by Columbia University Department of Psychiatry, Sleep deprivation studies show that ***otherwise healthy people can experience increased anxiety and distress levels*** following poor sleep. This it might affect student's performance in class and might result to long term academic problems.
+
+A Welch two sample t-test will be used to determine whether there is any relationship between decreased sleep duration and elevated anxiety levels in students, as opposed to those who obtain more sleep. A Welch two sample t-test is appropriate for this topic, because we would like to know if there is a significant difference between the means of two independent groups. It is similar to two sample t-test but it is used when the variances of the two groups are not assumed to be equal, which is what is happening in this case.
+
+We first check the assumptions by computing a table of the mean, standard deviation, and n for anxiety level.
+
+```{r}
+summary_stats <- cleaned_data %>%
+  group_by(anxiety_level) %>%
+  summarise(
+    Mean = mean(cleaned_sleep_time, na.rm = TRUE),
+    SD = sd(cleaned_sleep_time, na.rm = TRUE),
+    n = sum(!is.na(cleaned_sleep_time))
+  )
+
+summary_stats %>%
+  gt() %>%
+  tab_spanner(
+    label = "Summary Statistics",
+    columns = vars(Mean, SD, n)
+  )
+
+```
+
+Since n and SD is not the same, it is appropriate to use Welch two sample t-test.
+
+We then move on to making the boxplot and qqplot to check on the distributions:
+
+```{r}
+cleaned_data <- na.omit(cleaned_data, cols = c("cleaned_sleep_time", "anxiety_level"))
+
+ggplot(cleaned_data, aes(x = cleaned_sleep_time, y = anxiety_level)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.15, size = 3, colour = "purple") +
+  labs(x = "Cleaned Sleep Time",
+       y = "Anxiety Level")
+```
+
+```{r}
+ggplot(cleaned_data, aes(sample = cleaned_sleep_time)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(title = "QQ Plot of Sleep Time",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles")
+```
+
+We then can compute the Welch two sample t-test:
+
+```{r}
+lower_anxiety_data <- cleaned_data$cleaned_sleep_time[cleaned_data$anxiety_level == "lower anxiety"]
+higher_anxiety_data <- cleaned_data$cleaned_sleep_time[cleaned_data$anxiety_level == "higher anxiety"]
+
+t.test(lower_anxiety_data, higher_anxiety_data, alternative = "two.sided")
+```
+
+-   Hypothesis:
+
+    ![](images/Screen%20Shot%202023-09-10%20at%2018.58.29.png){width="356"}
+
+-   Assumptions:
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.59.08.png){width="300"}
+
+![](images/Screen%20Shot%202023-09-10%20at%2018.59.24.png){width="228" height="22"}
+
+-   Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2019.00.18.png){fig-align="center" width="106"}
+
+-   Observed Test Statistic:
+
+    ![](images/Screen%20Shot%202023-09-10%20at%2019.00.47.png){width="125"}
+
+, t0 = 1.2084
+
+-   P-value:
+
+![](images/Screen%20Shot%202023-09-10%20at%2019.01.44.png){fig-align="center" width="240"}
+
+, p-value = 0.2282
+
+-   Decision:
+
+    -   Since p value is larger than 0.05, we accept the null hypothesis and conclude that there is no significant difference between anxiety levels on sleeping time.
+
+We can conclude that there is no relationship between sleeping time and anxiety level on student. This might be because although sleep and anxiety can influence each other, they are not directly related in a one-size-fits-all manner. Since it depends on each individuals, maybe some biological factors, physiological factors, and some external factors.
+
+#### 5.4 What is the comparison between the Weighted Average Mark (WAM) for DATA2X02 students and the average WAM of graduates in Australia?
+
+Another relevant topic would be assessing student's overall wam and asking how does it compare to the average wam of students in Australia, is it higher or is it lower? It is said that the perceived average WAM is **72.69.**
+
+We can use Wilcoxon sign rank test. The test is designed for paired or matched samples. In this case, you're comparing the WAM of DATA2X02 students to the average WAM of graduates in Australia. The WAM is an ordinal or interval scale measure, which makes it suitable for this type of test.
+
+We first generate a boxplot and qqplot to see the distributions:
+
+```{r}
+cleaned_data_filtered <- cleaned_data[cleaned_data$wam >= 25,]
+
+#boxplot
+ggplot(cleaned_data_filtered, aes(y = wam)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of WAM",
+       y = "WAM")
+
+#qq plot
+ggplot(cleaned_data_filtered, aes(sample = wam)) +
+  stat_qq() +
+  stat_qq_line() + 
+  labs(title = "QQ Plot of WAM",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles")
+
+
+```
+
+We then can compute the wilcoxon test:
+
+```{r}
+wam_values <- cleaned_data$wam
+
+wilcox.test(wam_values - 72.69, alternative = "two.sided")
+
+```
+
+-   Hypothesis:
+
+    -   H0 --\> the overall average wam is similar to 72.69
+
+    -   H1 --\> the overall average wam is not similar to 72.69
+
+-   Assumptions:
+
+![](images/Screen%20Shot%202023-09-10%20at%2019.21.20.png){fig-align="center" width="319" height="20"}
+
+-   Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2019.23.26.png){fig-align="center" width="156"}
+
+-   Observed Test Statistic:
+
+![](images/Screen%20Shot%202023-09-10%20at%2019.22.58.png){fig-align="center" width="147"}
+
+-   P-value:
+
+    -   p-value = 0.1537
+
+-   Decision:
+
+    -   Since p-value is higher than 0.05, therefore we accept null hypothesis that the the overall wam for students in DATA2X02 is not similar to the stated overall wam in Australia.
+
+The result is pretty much expected. The overall score of a random sampling variable in a class may not be similar to the overall Weighted Average Mark (WAM) in classes across the entire country, this is because of sampling error from subset of population and also small sample size, there are also maybe some other external factors affecting this.
+
+#### 5.5 Is there a significant difference in the assignment submission between different gender as determined by a Monte Carlo test?
+
+Lastly we want to ask whether there is a significant difference in the assignment submission between different gender (male and female). Recent studies in the developed world have shown a reversal in academic performance between males and females, with **females outperforming males in almost all disciplines at various levels of the educational ladder**(see Grant and Behrman 2010). Therefore we would like to check if there are any correlation between genders and the difference(if any) on assignment submission.
+
+We can use the monte carlo test for estimating numerical results through repeated random sampling. It's particularly useful when exact solutions are difficult or impossible to obtain analytically, which is suitable for this case.
+
+We first set up the contingency table:
+
+```{r}
+library(gt)
+
+contingency_table <- table(cleaned_data$gender_clean, cleaned_data$on_time)
+
+contingency_df <- as.data.frame.matrix(contingency_table)
+
+rownames(contingency_df) <- c("man", "woman")
+colnames(contingency_df) <- c("Always", "Never","Sometimes", "Usually")
+
+contingency_table
+
+contingency_gt <- gt(contingency_df)
+contingency_gt
+
+```
+
+We can perform the chi squared test:
+
+```{r}
+chisq.test(contingency_table)
+```
+
+We can also check one of the test statistic result from one of the sample, in this case we are checking the first randomized sample:
+
+```{r}
+
+row_totals = rowSums(contingency_table)
+col_totals = colSums(contingency_table)
+B = 10000
+set.seed(123)
+x_list = r2dtable(n = B,
+                  r = row_totals,
+                  c = col_totals)
+x_list[[1]]
+
+chisq.test(x_list[[1]])
+```
+
+A graph showing distribution of the absolute test statistic can also be computed as shown below, where the vertical line is the original test statistic result of the original sample:
+
+```{r}
+B <- 10000
+permuted_statistics <- numeric(B)
+
+for (i in 1:B) {
+  permuted_contingency_table <- as.table(x_list[[i]])
+  suppressWarnings({
+    permuted_statistics[i] <- chisq.test(permuted_contingency_table)$statistic
+  })
+}
+
+# Calculate absolute values
+abs_permuted_statistics <- abs(permuted_statistics)
+
+# Assuming you have already calculated the original test statistic
+observed_statistic <- 0.7
+
+# Step 2: Create a histogram
+hist(abs_permuted_statistics, 
+     main = "Distribution of Absolute Test Statistics", 
+     xlab = "Absolute Test Statistic",
+     breaks = seq(0, max(abs_permuted_statistics) + 0.1, by = 0.1))
+
+# Add vertical line for the original test statistic
+abline(v = observed_statistic, col = "red")
+
+
+```
+
+We can also use the 2 function below, and they will give similar results :
+
+```{r}
+chisq.test(contingency_table, simulate.p.value = TRUE)
+```
+
+```{r}
+#resample B=10000
+chisq.test(contingency_table, simulate.p.value = TRUE, B = 10000)
+```
+
+Since the p value is larger compared to the alpha or significance, then we can conclude that there is no strong evidence which shows that gender has anything to do with student's assignment submission behavior. This is because there are other factors that we must go through before deducting a final conclusion, some of the factors could be type of education, socioeconomic factors, area of study, workload, individual commitments, and many more.
+
+## 6. Conclusion
+
+Our findings shows that there is a correlation between student in DATA2X02 employment and approach on doing task as those who work has less time to do their assignment, most crammed the assignment and planned a schedule. We also find that library preference does not influence DATA2X02 students' approach to assignments. Dcreased sleep duration and elevated anxiety levels in students which might not affect student's academic performance. After some testing, we also found out that the overall wam from DATA2X02 is not similar to the overall in Australia and we have discussed some factors that might cause that as well. We can also conclude that there is no strong evidence which shows that gender has anything to do with student's assignment submission behavior.
+
+However, we can't make a strong statement on whether these factors actually have any relationships since there might be some bias and error present in the data set.
+
+From the tests computed, we can come to a conclusion that as there might be a lot of factors that looks like they have a correlation for this topic, they might not actually be connected even if there are articles, since it depends on a lot of internal as well as external factor.
+
+## 7. Limitations
+
+There are a lot of limitations in these scenario, Since the survey is given to a single class, the sample size may be small. This can limit the generalizability of the findings to a broader population since it may not represent a diverse range of backgrounds, there are also limited external validity, and a lot of response bias as well as non-response bias which might affect the data cleaning or processing. Due to sampling error, we might get a small sample size and the study may have limited statistical power, which means it may not be able to detect small effects. as discussed at section 3.2)
+
+Improvements that can be done to get a more accurate result are having a larger sample size, modifying some question to avoid confusion to participants and to make the data more consistent(as discussed at section 3.3), also conduct sensitive analysis(robustness) on test statistic.
+
+## 8. Further Questions
+
+For further questions regarding the topic ***"Analyzing the Factors that Influence Academic Performance in DATA2X02 Students at the University of Sydney"*** could be asking about relationship of student academic related variables with some other external factors like exercise hours, diets, studying habits, social media hours, and many more.
+
+## 9. Reference
+
+\[Casalone, G. (n.d.). The Economics of University Dropouts and Delayed Graduation: A Survey. IZA - Institute of Labor Economics.\](Accessed on September 10, 2023) \[PDF\](https://docs.iza.org/dp11421.pdf)
+
+\[Anxiety and Sleep. (2023, August 8). Sleep Foundation.\](Accessed on September 2, 2023) \[Link\](https://www.sleepfoundation.org/mental-health/anxiety-and-sleep)
+
+\[Gender differences in academic performance of students studying Science Technology Engineering and Mathematics (STEM) subjects at the University of Ghana. (2023, January 9). NCBI.\](Accessed on September 4, 2023) \[Link\](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9838398/)
+
+\[How Sleep Deprivation Impacts Mental Health. (2022, March 16). Columbia University Department of Psychiatry.\](Accessed on September 4, 2023) \[Link\](https://www.columbiapsychiatry.org/news/how-sleep-deprivation-affects-your-mental-health)
+
+\[Unimelb Grade Distributions: Part 1 \| by MajorlyUnemployedGrad \| Medium. (2020, October 20). MajorlyUnemployedGrad.\](Accessed on September 8, 2023) \[Link\](https://unemployedgrad2020.medium.com/unimelb-grade-distributions-part-1-4f12295f595a)
